@@ -43,5 +43,6 @@ jobs:
           command: |
             export PATH=$PATH:~/dkan-tools/bin
             dktl test:cypress
+            ls -l vendor
             vendor/bin/phpunit
 
