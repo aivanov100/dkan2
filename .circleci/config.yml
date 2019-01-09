@@ -44,3 +44,4 @@ jobs:
             export PATH=$PATH:~/dkan-tools/bin
             dktl test:cypress
             vendor/bin/phpunit
+
