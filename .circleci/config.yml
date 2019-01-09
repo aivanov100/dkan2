@@ -39,10 +39,17 @@ jobs:
             export PATH=$PATH:~/dkan-tools/bin
             dktl drush site-install dkan2 -y --notify
       - run:
-          name: Run tests
+          name: Run cypress tests
           command: |
             export PATH=$PATH:~/dkan-tools/bin
             dktl test:cypress
             ls -l
             vendor/bin/phpunit
+      - run:
+          name: Run phpUnit tests
+          command: |
+            cp ../dkan2/phpunit.xml .
+            cp ../dkan2/composer.json .
+            dktl docker:compose exec cli "composer install"
+            dktl docker:compose exec cli "vendor/bin/phpunit"
 
