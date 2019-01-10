@@ -49,7 +49,5 @@ jobs:
           name: Run phpUnit tests
           command: |
             cp ../dkan2/phpunit.xml .
-            cp ../dkan2/composer.json .
-            dktl docker:compose exec cli "composer install"
-            dktl docker:compose exec cli "vendor/bin/phpunit"
+            dktl docker:compose exec cli "docroot/vendor/bin/phpunit"
 
