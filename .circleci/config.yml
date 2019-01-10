@@ -46,6 +46,7 @@ jobs:
       - run:
           name: Run phpUnit tests
           command: |
+            export PATH=$PATH:~/dkan-tools/bin
             cp ../dkan2/phpunit.xml .
             dktl docker:compose exec cli "docroot/vendor/bin/phpunit"
 
