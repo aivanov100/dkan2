@@ -3,8 +3,8 @@
 namespace Drupal\dkan_api\Storage;
 
 use Drupal\node\Entity\Node;
-use Sae\Contracts\Storage;
-use Sae\Contracts\BulkRetriever;
+use Contracts\Storage;
+use Contracts\BulkRetriever;
 
 class DrupalNodeDataset implements Storage, BulkRetriever {
   protected function getType() {
@@ -12,12 +12,8 @@ class DrupalNodeDataset implements Storage, BulkRetriever {
   }
 
   public function retrieve($id) {
-    $connection = \Drupal::database();
-    $sql = "SELECT nid FROM node WHERE uuid = :uuid AND type = :type";
-    $query = $connection->query($sql, [':uuid' => $id, ':type' => $this->getType()]);
-    $results = $query->fetchAll();
 
-    foreach ($results as $result) {
+    foreach ($this->getNodesByUuid($id) as $result) {
       $node = Node::load($result->nid);
       return $node->field_json_metadata->value;
     }
@@ -40,11 +36,25 @@ class DrupalNodeDataset implements Storage, BulkRetriever {
   }
 
   public function remove($id) {
-    // TODO: Implement remove() method.
+
+    foreach ($this->getNodesByUuid($id) as $result) {
+      $node = Node::load($result->nid);
+      return $node->delete();
+    }
   }
 
   public function store($data, $id = NULL) {
-    $node = \Drupal::service('entity.repository')->loadEntityByUuid('node', $data->identifier);
+
+    $data = json_decode($data);
+
+    if (!$id && isset($data->identifier)) {
+        $id = $data->identifier;
+    }
+
+    if ($id) {
+        $node = \Drupal::service('entity.repository')->loadEntityByUuid('node', $id);
+    }
+
     if ($node) {    // update existing node
       $node->field_json_metadata = json_encode($data);
       $node->save();
@@ -53,12 +63,19 @@ class DrupalNodeDataset implements Storage, BulkRetriever {
       $nodeWrapper = NODE::create([
         'title' => $title,
         'type' => 'dataset',
-        'uuid' => $data->identifier,
+        'uuid' => $id,
         'field_json_metadata' => json_encode($data)
       ]);
       $nodeWrapper->save();
       return $nodeWrapper->id();
     }
+  }
+
+  private function getNodesByUuid($uuid) {
+    $connection = \Drupal::database();
+    $sql = "SELECT nid FROM node WHERE uuid = :uuid AND type = :type";
+    $query = $connection->query($sql, [':uuid' => $uuid, ':type' => $this->getType()]);
+    return $query->fetchAll();
   }
 
 }
